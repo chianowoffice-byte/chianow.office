@@ -413,9 +413,9 @@
                     };
                 }
                 
-                // *** KHẮC PHỤC LỖI 403: XÓA THAM SỐ API KEY KHỎI URL ***
-                // Để Canvas tự động chèn khóa API qua header.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+                // *** KHẮC PHỤC LỖI 403: TÁI TẠO KEY BẰNG CHUỖI RỖNG ***
+                const apiKey = ""; // Cố tình để rỗng để Canvas chèn khóa API
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
                 const payload = {
                     contents: [{
@@ -454,6 +454,10 @@
                         if (!response.ok) {
                              const errorBody = await response.json();
                              console.error(`HTTP Error ${response.status}:`, errorBody);
+                             // Nếu lỗi 403, báo cáo lỗi xác thực rõ ràng hơn
+                             if (response.status === 403) {
+                                showToast('Lỗi 403: Lỗi xác thực API. Khóa API không hợp lệ hoặc bị từ chối.', 'bg-red-700');
+                             }
                              throw new Error(`HTTP error! status: ${response.status}. See console for details.`);
                         }
                         
