@@ -413,8 +413,9 @@
                     };
                 }
                 
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                // *** KHẮC PHỤC LỖI 403: XÓA THAM SỐ API KEY KHỎI URL ***
+                // Để Canvas tự động chèn khóa API qua header.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
 
                 const payload = {
                     contents: [{
