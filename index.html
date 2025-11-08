@@ -321,16 +321,30 @@
         // Hàm giúp định dạng ngày tháng sang YYYY-MM-DD nếu có thể (cho input type=date)
         const formatDateForInput = (dateString) => {
             if (!dateString) return '';
-            const parts = dateString.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+            // Chuỗi ngày tháng có thể là DD/MM/YYYY, DD-MM-YYYY, hoặc YYYY-MM-DD
+            const parts = dateString.match(/(\d{1,4})[/-](\d{1,2})[/-](\d{2,4})/);
             if (parts) {
-                let day = parts[1].padStart(2, '0');
-                let month = parts[2].padStart(2, '0');
-                let year = parts[3];
-                if (year.length === 2) {
-                    year = (parseInt(year) < 50 ? '20' : '19') + year;
+                const p1 = parts[1]; // Ngày hoặc Năm
+                const p2 = parts[2]; // Tháng
+                const p3 = parts[3]; // Năm hoặc Ngày
+
+                let year, month, day;
+
+                // Logic đơn giản để đoán định dạng DD/MM/YYYY hoặc MM/DD/YYYY
+                // Giả định định dạng phổ biến ở VN là DD/MM/YYYY
+                if (p1.length <= 2 && p3.length === 4) { // D/M/YYYY (Phổ biến)
+                    day = p1.padStart(2, '0');
+                    month = p2.padStart(2, '0');
+                    year = p3;
+                } else if (p1.length === 4) { // YYYY/MM/DD
+                    year = p1;
+                    month = p2.padStart(2, '0');
+                    day = p3.padStart(2, '0');
+                } else { // Trường hợp khác, sử dụng chuỗi gốc và để người dùng chỉnh sửa
+                    return dateString;
                 }
-                // Giả định định dạng đầu vào là DD/MM/YYYY
-                return `${year}-${month}-${day}`;
+
+                return `${year}-${month}-${day}`; 
             }
             // Trả về chuỗi gốc nếu không khớp định dạng, để người dùng tự chỉnh sửa.
             return dateString; 
@@ -343,8 +357,10 @@
          */
         window.extractText = async (inputId, docType) => {
             const fileInput = document.getElementById(inputId);
-            if (!fileInput.files.length) {
-                showToast('Vui lòng chụp ảnh trước.', 'bg-yellow-500');
+            
+            // KIỂM TRA QUAN TRỌNG: Đảm bảo có file được chọn
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast('Vui lòng chụp ảnh hoặc chọn file trước khi trích xuất.', 'bg-yellow-500');
                 return;
             }
 
@@ -366,7 +382,8 @@
                 let responseSchema;
 
                 if (docType === 'cccd') {
-                    prompt = `Phân tích văn bản trong ảnh là Căn cước công dân. Trích xuất chính xác các thông tin sau, và cố gắng chuyển ngày tháng sang định dạng DD/MM/YYYY: 1. Họ và tên (FULL_NAME), 2. Giới tính (GENDER), 3. Ngày sinh (BIRTH_DATE), 4. Số Căn cước/CCCD (ID_NUMBER), 5. Ngày cấp (ISSUE_DATE), 6. Nơi cấp (ISSUE_PLACE). Trả lời chỉ dưới dạng JSON.`;
+                    // Cập nhật Prompt: Yêu cầu trả về ngày tháng dưới dạng chuỗi nguyên gốc.
+                    prompt = `Phân tích văn bản trong ảnh là Căn cước công dân. Trích xuất chính xác các thông tin sau: 1. Họ và tên (FULL_NAME), 2. Giới tính (GENDER), 3. Ngày sinh (BIRTH_DATE), 4. Số Căn cước/CCCD (ID_NUMBER), 5. Ngày cấp (ISSUE_DATE), 6. Nơi cấp (ISSUE_PLACE). Trả lời chỉ dưới dạng JSON.`;
                     responseSchema = {
                         type: "OBJECT",
                         properties: {
@@ -375,11 +392,12 @@
                             "BIRTH_DATE": { "type": "STRING" },
                             "ID_NUMBER": { "type": "STRING" },
                             "ISSUE_DATE": { "type": "STRING" },
-                            "ISSUE_PLACE": { "type": "STRING" } // Đã sửa lỗi cú pháp
+                            "ISSUE_PLACE": { "type": "STRING" }
                         }
                     };
                 } else { // HKD
-                    prompt = `Phân tích văn bản trong ảnh là Giấy đăng ký Hộ kinh doanh. Trích xuất chính xác các thông tin sau, và cố gắng chuyển ngày tháng sang định dạng DD/MM/YYYY: 1. Tên hộ kinh doanh (HKD_NAME), 2. Số ĐKKD (DKKD_NUMBER), 3. Ngày cấp lần đầu (FIRST_ISSUE_DATE), 4. Ngày điều chỉnh gần nhất (LAST_ADJUST_DATE), 5. Mã số thuế (MST), 6. Lĩnh vực kinh doanh (BUSINESS_FIELD), 7. Địa chỉ HKD (HKD_ADDRESS). Trả lời chỉ dưới dạng JSON.`;
+                    // Cập nhật Prompt: Yêu cầu trả về ngày tháng dưới dạng chuỗi nguyên gốc.
+                    prompt = `Phân tích văn bản trong ảnh là Giấy đăng ký Hộ kinh doanh. Trích xuất chính xác các thông tin sau: 1. Tên hộ kinh doanh (HKD_NAME), 2. Số ĐKKD (DKKD_NUMBER), 3. Ngày cấp lần đầu (FIRST_ISSUE_DATE), 4. Ngày điều chỉnh gần nhất (LAST_ADJUST_DATE), 5. Mã số thuế (MST), 6. Lĩnh vực kinh doanh (BUSINESS_FIELD), 7. Địa chỉ HKD (HKD_ADDRESS). Trả lời chỉ dưới dạng JSON.`;
                     responseSchema = {
                         type: "OBJECT",
                         properties: {
@@ -389,7 +407,7 @@
                             "LAST_ADJUST_DATE": { "type": "STRING" },
                             "MST": { "type": "STRING" },
                             "BUSINESS_FIELD": { "type": "STRING" },
-                            "HKD_ADDRESS": { "type": "STRING" } // Đã sửa lỗi cú pháp
+                            "HKD_ADDRESS": { "type": "STRING" }
                         }
                     };
                 }
@@ -463,10 +481,9 @@
                     if (docType === 'cccd') {
                         document.getElementById('Ho_va_ten').value = result.FULL_NAME || '';
                         document.getElementById('Gioi_tinh').value = result.GENDER || '';
-                        // Cố gắng định dạng lại ngày sinh cho input type="date"
+                        // Sử dụng hàm formatDateForInput để chuyển đổi định dạng
                         document.getElementById('Ngay_sinh').value = formatDateForInput(result.BIRTH_DATE) || '';
                         document.getElementById('So_Can_cuoc_CCCD').value = result.ID_NUMBER || '';
-                        // Cố gắng định dạng lại ngày cấp cho input type="date"
                         document.getElementById('Ngay_cap').value = formatDateForInput(result.ISSUE_DATE) || '';
                         document.getElementById('Noi_cap').value = result.ISSUE_PLACE || '';
                         showToast('Trích xuất CCCD thành công. Vui lòng kiểm tra lại dữ liệu!', 'bg-green-600');
@@ -584,7 +601,8 @@
         // Helper function to reset file input
         const fileInputReset = (id) => {
             const input = document.getElementById(id);
-            input.value = null; // Clear file selected
+            // Gán lại chính nó để reset state, cách tốt nhất để reset input type="file"
+            input.value = null; 
         };
         
     </script>
