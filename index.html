@@ -318,6 +318,24 @@
             }
         };
 
+        // Hàm giúp định dạng ngày tháng sang YYYY-MM-DD nếu có thể (cho input type=date)
+        const formatDateForInput = (dateString) => {
+            if (!dateString) return '';
+            const parts = dateString.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+            if (parts) {
+                let day = parts[1].padStart(2, '0');
+                let month = parts[2].padStart(2, '0');
+                let year = parts[3];
+                if (year.length === 2) {
+                    year = (parseInt(year) < 50 ? '20' : '19') + year;
+                }
+                // Giả định định dạng đầu vào là DD/MM/YYYY
+                return `${year}-${month}-${day}`;
+            }
+            // Trả về chuỗi gốc nếu không khớp định dạng, để người dùng tự chỉnh sửa.
+            return dateString; 
+        };
+
         /**
          * Gọi API Gemini để trích xuất văn bản từ ảnh.
          * @param {string} inputId - ID của input file.
@@ -348,7 +366,7 @@
                 let responseSchema;
 
                 if (docType === 'cccd') {
-                    prompt = `Phân tích văn bản trong ảnh là Căn cước công dân. Trích xuất chính xác các thông tin sau: 1. Họ và tên (FULL_NAME), 2. Giới tính (GENDER), 3. Ngày sinh (BIRTH_DATE), 4. Số Căn cước/CCCD (ID_NUMBER), 5. Ngày cấp (ISSUE_DATE), 6. Nơi cấp (ISSUE_PLACE). Trả lời chỉ dưới dạng JSON.`;
+                    prompt = `Phân tích văn bản trong ảnh là Căn cước công dân. Trích xuất chính xác các thông tin sau, và cố gắng chuyển ngày tháng sang định dạng DD/MM/YYYY: 1. Họ và tên (FULL_NAME), 2. Giới tính (GENDER), 3. Ngày sinh (BIRTH_DATE), 4. Số Căn cước/CCCD (ID_NUMBER), 5. Ngày cấp (ISSUE_DATE), 6. Nơi cấp (ISSUE_PLACE). Trả lời chỉ dưới dạng JSON.`;
                     responseSchema = {
                         type: "OBJECT",
                         properties: {
@@ -357,21 +375,21 @@
                             "BIRTH_DATE": { "type": "STRING" },
                             "ID_NUMBER": { "type": "STRING" },
                             "ISSUE_DATE": { "type": "STRING" },
-                            "ISSUE_PLACE": { "type: "STRING" }
+                            "ISSUE_PLACE": { "type": "STRING" } // Đã sửa lỗi cú pháp
                         }
                     };
                 } else { // HKD
-                    prompt = `Phân tích văn bản trong ảnh là Giấy đăng ký Hộ kinh doanh. Trích xuất chính xác các thông tin sau: 1. Tên hộ kinh doanh (HKD_NAME), 2. Số ĐKKD (DKKD_NUMBER), 3. Ngày cấp lần đầu (FIRST_ISSUE_DATE), 4. Ngày điều chỉnh gần nhất (LAST_ADJUST_DATE), 5. Mã số thuế (MST), 6. Lĩnh vực kinh doanh (BUSINESS_FIELD), 7. Địa chỉ HKD (HKD_ADDRESS). Trả lời chỉ dưới dạng JSON.`;
+                    prompt = `Phân tích văn bản trong ảnh là Giấy đăng ký Hộ kinh doanh. Trích xuất chính xác các thông tin sau, và cố gắng chuyển ngày tháng sang định dạng DD/MM/YYYY: 1. Tên hộ kinh doanh (HKD_NAME), 2. Số ĐKKD (DKKD_NUMBER), 3. Ngày cấp lần đầu (FIRST_ISSUE_DATE), 4. Ngày điều chỉnh gần nhất (LAST_ADJUST_DATE), 5. Mã số thuế (MST), 6. Lĩnh vực kinh doanh (BUSINESS_FIELD), 7. Địa chỉ HKD (HKD_ADDRESS). Trả lời chỉ dưới dạng JSON.`;
                     responseSchema = {
                         type: "OBJECT",
                         properties: {
                             "HKD_NAME": { "type": "STRING" },
                             "DKKD_NUMBER": { "type": "STRING" },
                             "FIRST_ISSUE_DATE": { "type": "STRING" },
-                            "LAST_ADJUST_DATE": { "type: "STRING" },
+                            "LAST_ADJUST_DATE": { "type": "STRING" },
                             "MST": { "type": "STRING" },
                             "BUSINESS_FIELD": { "type": "STRING" },
-                            "HKD_ADDRESS": { "type: "STRING" }
+                            "HKD_ADDRESS": { "type": "STRING" } // Đã sửa lỗi cú pháp
                         }
                     };
                 }
@@ -411,9 +429,21 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
+                        if (!response.ok) {
+                             throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                         apiResponse = await response.json();
                         if (apiResponse.candidates && apiResponse.candidates.length > 0) {
                             break; // Success
+                        } else {
+                            // API call succeeded but no candidate was returned (e.g., safety block or empty response)
+                            console.error("API returned no candidates:", apiResponse);
+                            if (attempt < maxRetries) {
+                                await new Promise(resolve => setTimeout(resolve, 2 ** attempt * 1000));
+                                continue;
+                            } else {
+                                throw new Error("API failed to return content after multiple retries.");
+                            }
                         }
                     } catch (error) {
                         console.warn(`Attempt ${attempt} failed. Retrying in ${2 ** attempt}s...`);
@@ -425,6 +455,7 @@
                     }
                 }
                 
+                // Process the successful response
                 if (apiResponse.candidates && apiResponse.candidates.length > 0) {
                     const jsonText = apiResponse.candidates[0].content.parts[0].text;
                     const result = JSON.parse(jsonText);
@@ -432,15 +463,17 @@
                     if (docType === 'cccd') {
                         document.getElementById('Ho_va_ten').value = result.FULL_NAME || '';
                         document.getElementById('Gioi_tinh').value = result.GENDER || '';
-                        document.getElementById('Ngay_sinh').value = result.BIRTH_DATE || '';
+                        // Cố gắng định dạng lại ngày sinh cho input type="date"
+                        document.getElementById('Ngay_sinh').value = formatDateForInput(result.BIRTH_DATE) || '';
                         document.getElementById('So_Can_cuoc_CCCD').value = result.ID_NUMBER || '';
-                        document.getElementById('Ngay_cap').value = result.ISSUE_DATE || '';
+                        // Cố gắng định dạng lại ngày cấp cho input type="date"
+                        document.getElementById('Ngay_cap').value = formatDateForInput(result.ISSUE_DATE) || '';
                         document.getElementById('Noi_cap').value = result.ISSUE_PLACE || '';
                         showToast('Trích xuất CCCD thành công. Vui lòng kiểm tra lại dữ liệu!', 'bg-green-600');
                     } else {
                         document.getElementById('Ten_ho_kinh_doanh').value = result.HKD_NAME || '';
                         document.getElementById('So_DKKD').value = result.DKKD_NUMBER || '';
-                        document.getElementById('Ngay_cap_lan_dau').value = result.FIRST_ISSUE_DATE || '';
+                        document.getElementById('Ngay_cap_lan_dau').value = formatDateForInput(result.FIRST_ISSUE_DATE) || '';
                         document.getElementById('Ngay_dieu_chinh_gan_nhat').value = result.LAST_ADJUST_DATE || '';
                         document.getElementById('Ma_so_thue').value = result.MST || '';
                         document.getElementById('Linh_vuc_kinh_doanh').value = result.BUSINESS_FIELD || '';
@@ -453,7 +486,8 @@
 
             } catch (error) {
                 console.error("Lỗi trích xuất bằng Gemini:", error);
-                showToast('Lỗi trích xuất. Thử lại hoặc nhập thủ công.', 'bg-red-500');
+                // Hiển thị lỗi chi tiết hơn nếu có thể
+                showToast(`Lỗi trích xuất: ${error.message || 'Lỗi không xác định'}. Thử lại hoặc nhập thủ công.`, 'bg-red-500');
             } finally {
                 // Reset loading state
                 loader.classList.add('hidden');
