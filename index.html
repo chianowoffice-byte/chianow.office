@@ -7,6 +7,8 @@
     <!-- Tải Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Thư viện jsQR để đọc mã QR trên ảnh (Client-side) -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -160,6 +162,71 @@
                 document.getElementById('Ten_Phong').value = info.tenPhong || '';
             }
         };
+        
+        /**
+         * Chức năng ĐỌC MÃ QR trên ảnh chụp CCCD (Client-side)
+         */
+        window.readQRData = (inputId) => {
+            const fileInput = document.getElementById(inputId);
+            const rawDataField = document.getElementById('Raw_QR_Data');
+            const loader = document.getElementById('qrLoader');
+            const button = document.getElementById('readQRButton');
+            const originalButtonText = button.textContent.trim();
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast('Vui lòng chụp ảnh CCCD trước khi đọc mã QR.', 'bg-yellow-500');
+                return;
+            }
+            
+            loader.classList.remove('hidden');
+            button.disabled = true;
+            button.textContent = 'Đang xử lý...';
+            rawDataField.value = 'Đang cố gắng đọc mã QR...';
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    context.drawImage(img, 0, 0, img.width, img.height);
+                    
+                    const imageData = context.getImageData(0, 0, img.width, img.height);
+                    
+                    // Sử dụng thư viện jsQR để quét mã QR
+                    // jsQR(data, width, height)
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                    loader.classList.add('hidden');
+                    button.disabled = false;
+                    button.textContent = originalButtonText;
+
+                    if (code) {
+                        const qrString = code.data;
+                        rawDataField.value = qrString;
+                        showToast('Đọc mã QR thành công! Vui lòng nhập thông tin dựa trên chuỗi.', 'bg-green-600');
+                        
+                        // Cố gắng tự động điền Số CCCD (12 chữ số)
+                        // Mã QR CCCD thường bắt đầu bằng Số CCCD
+                        const idMatch = qrString.match(/\d{12}/); 
+                        if (idMatch) {
+                            document.getElementById('So_Can_cuoc_CCCD').value = idMatch[0];
+                            showToast('Đã tự động điền Số CCCD.', 'bg-green-600');
+                        }
+                        
+                    } else {
+                        rawDataField.value = 'Không tìm thấy mã QR nào trong ảnh. Vui lòng thử lại với ảnh rõ hơn.';
+                        showToast('Lỗi: Không tìm thấy mã QR. Ảnh phải rõ và đủ sáng.', 'bg-red-500');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
     </script>
 </head>
 <body onload="initFirebase()">
@@ -186,11 +253,11 @@
                 </div>
             </div>
 
-            <!-- Step 2: Chụp CCCD & Dán QR -->
+            <!-- Step 2: Chụp CCCD & Đọc QR -->
             <div class="step-section">
                 <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                    2. Chụp CCCD & Dán Chuỗi QR (Nhập liệu nhanh)
+                    2. Chụp CCCD & Trích xuất QR
                 </h2>
                 <input type="file" accept="image/*" capture="camera" id="cccdImageInput" class="hidden" onchange="previewImage('cccdImageInput', 'cccdImagePreview')">
                 <button onclick="document.getElementById('cccdImageInput').click()" class="btn-primary w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center">
@@ -199,9 +266,12 @@
                 </button>
                 <img id="cccdImagePreview" class="mt-3 w-full rounded-lg hidden border-2 border-gray-200">
                 
-                <textarea id="Raw_QR_Data" placeholder="Dán chuỗi dữ liệu thô từ QR CCCD vào đây để tham khảo nhanh" rows="2" class="w-full p-3 mt-3 border border-yellow-400 bg-yellow-50 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"></textarea>
+                <button id="readQRButton" onclick="readQRData('cccdImageInput')" class="btn-primary w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg mt-3 flex items-center justify-center">
+                    <div id="qrLoader" class="hidden loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div>
+                    ĐỌC DỮ LIỆU TỪ MÃ QR
+                </button>
 
-                <!-- Nút trích xuất AI được ẩn/loại bỏ để tránh lỗi 403. -->
+                <textarea id="Raw_QR_Data" placeholder="Chuỗi dữ liệu thô (sau khi quét QR) sẽ hiển thị ở đây. Số CCCD sẽ được điền tự động." rows="3" class="w-full p-3 mt-3 border border-yellow-400 bg-yellow-50 rounded-lg focus:ring-yellow-500 focus:border-yellow-500"></textarea>
             </div>
 
             <!-- Step 3: Thông tin Chủ Hộ (Kết quả Trích xuất/Nhập thủ công) -->
