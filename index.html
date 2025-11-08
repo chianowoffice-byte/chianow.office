@@ -186,46 +186,68 @@
             const file = fileInput.files[0];
             const reader = new FileReader();
 
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    context.drawImage(img, 0, 0, img.width, img.height);
-                    
-                    const imageData = context.getImageData(0, 0, img.width, img.height);
-                    
-                    // Sử dụng thư viện jsQR để quét mã QR
-                    // jsQR(data, width, height)
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                    loader.classList.add('hidden');
-                    button.disabled = false;
-                    button.textContent = originalButtonText;
-
-                    if (code) {
-                        const qrString = code.data;
-                        rawDataField.value = qrString;
-                        showToast('Đọc mã QR thành công! Vui lòng nhập thông tin dựa trên chuỗi.', 'bg-green-600');
-                        
-                        // Cố gắng tự động điền Số CCCD (12 chữ số)
-                        // Mã QR CCCD thường bắt đầu bằng Số CCCD
-                        const idMatch = qrString.match(/\d{12}/); 
-                        if (idMatch) {
-                            document.getElementById('So_Can_cuoc_CCCD').value = idMatch[0];
-                            showToast('Đã tự động điền Số CCCD.', 'bg-green-600');
+            // Sử dụng Promise để đảm bảo quá trình tải ảnh hoàn tất
+            const processQR = new Promise((resolve, reject) => {
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            context.drawImage(img, 0, 0, img.width, img.height);
+                            
+                            const imageData = context.getImageData(0, 0, img.width, img.height);
+                            
+                            // Sử dụng thư viện jsQR để quét mã QR
+                            const code = jsQR(imageData.data, imageData.width, imageData.height);
+                            resolve(code);
+                        } catch (error) {
+                            reject(error);
                         }
-                        
-                    } else {
-                        rawDataField.value = 'Không tìm thấy mã QR nào trong ảnh. Vui lòng thử lại với ảnh rõ hơn.';
-                        showToast('Lỗi: Không tìm thấy mã QR. Ảnh phải rõ và đủ sáng.', 'bg-red-500');
-                    }
+                    };
+                    img.onerror = (err) => {
+                         reject('Lỗi tải ảnh. Vui lòng thử lại với ảnh khác.');
+                    };
+                    img.src = e.target.result;
                 };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+                reader.onerror = (err) => {
+                     reject('Lỗi đọc file ảnh.');
+                };
+                reader.readAsDataURL(file);
+            });
+
+
+            processQR.then(code => {
+                loader.classList.add('hidden');
+                button.disabled = false;
+                button.textContent = originalButtonText;
+                
+                if (code && code.data) {
+                    const qrString = code.data;
+                    rawDataField.value = qrString;
+                    showToast('Đọc mã QR thành công! Vui lòng nhập thông tin dựa trên chuỗi.', 'bg-green-600');
+                    
+                    // Cố gắng tự động điền Số CCCD (12 chữ số)
+                    const idMatch = qrString.match(/(\d{12})/); 
+                    if (idMatch) {
+                        document.getElementById('So_Can_cuoc_CCCD').value = idMatch[0];
+                        showToast('Đã tự động điền Số CCCD.', 'bg-green-600');
+                    }
+                    
+                } else {
+                    rawDataField.value = 'Không tìm thấy mã QR nào trong ảnh. Vui lòng thử lại với ảnh rõ hơn.';
+                    showToast('Lỗi: Không tìm thấy mã QR. Ảnh phải rõ và đủ sáng.', 'bg-red-500');
+                }
+            }).catch(error => {
+                loader.classList.add('hidden');
+                button.disabled = false;
+                button.textContent = originalButtonText;
+                console.error("Lỗi quá trình quét QR:", error);
+                rawDataField.value = `Lỗi xử lý ảnh: ${error}`;
+                showToast(`Lỗi quét QR: ${error}`, 'bg-red-500');
+            });
         };
     </script>
 </head>
