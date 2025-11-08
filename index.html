@@ -35,19 +35,7 @@
             box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.5), 0 4px 6px -4px rgba(37, 99, 235, 0.5);
             transform: translateY(-2px);
         }
-        .loader {
-            border-top-color: #3b82f6;
-            -webkit-animation: spinner 1.5s linear infinite;
-            animation: spinner 1.5s linear infinite;
-        }
-        @-webkit-keyframes spinner {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        /* Loader styles removed as AI feature is disabled */
     </style>
     <!-- Firebase Imports -->
     <script type="module">
@@ -186,11 +174,11 @@
                 </div>
             </div>
 
-            <!-- Step 2: Quét/Trích xuất CCCD -->
+            <!-- Step 2: Chụp CCCD -->
             <div class="step-section">
                 <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                    2. Chụp & Trích xuất CCCD
+                    2. Chụp CCCD (Visual Reference)
                 </h2>
                 <input type="file" accept="image/*" capture="camera" id="cccdImageInput" class="hidden" onchange="previewImage('cccdImageInput', 'cccdImagePreview')">
                 <button onclick="document.getElementById('cccdImageInput').click()" class="btn-primary w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center">
@@ -198,18 +186,13 @@
                     Chụp Ảnh CCCD
                 </button>
                 <img id="cccdImagePreview" class="mt-3 w-full rounded-lg hidden border-2 border-gray-200">
-                
-                <button id="extractCCCDButton" onclick="extractText('cccdImageInput', 'cccd')" class="btn-primary w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg mt-3 flex items-center justify-center">
-                    <div id="cccdLoader" class="hidden loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div>
-                    Trích Xuất Thông Tin CCCD
-                </button>
             </div>
 
-            <!-- Step 3: Thông tin Chủ Hộ (Kết quả Trích xuất) -->
+            <!-- Step 3: Thông tin Chủ Hộ (Manual Input) -->
             <div class="step-section">
                 <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2v-5m-15-6h14a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 012-2z"></path></svg>
-                    3. Thông tin Chủ Hộ
+                    3. Thông tin Chủ Hộ (Nhập Thủ Công)
                 </h2>
                 <div class="space-y-3">
                     <input type="text" id="Ho_va_ten" placeholder="Họ và tên *" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -224,11 +207,11 @@
                 </div>
             </div>
 
-            <!-- Step 4: Chụp & Trích xuất Giấy Đăng ký HKD -->
+            <!-- Step 4: Chụp Đăng ký HKD -->
             <div class="step-section">
                 <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    4. Chụp & Trích xuất Đăng Ký HKD
+                    4. Chụp Đăng Ký HKD (Visual Reference)
                 </h2>
                 <input type="file" accept="image/*" capture="camera" id="hkdImageInput" class="hidden" onchange="previewImage('hkdImageInput', 'hkdImagePreview')">
                 <button onclick="document.getElementById('hkdImageInput').click()" class="btn-primary w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center">
@@ -236,18 +219,13 @@
                     Chụp Ảnh Đăng Ký HKD
                 </button>
                 <img id="hkdImagePreview" class="mt-3 w-full rounded-lg hidden border-2 border-gray-200">
-
-                <button id="extractHKDButton" onclick="extractText('hkdImageInput', 'hkd')" class="btn-primary w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg mt-3 flex items-center justify-center">
-                    <div id="hkdLoader" class="hidden loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 mr-2"></div>
-                    Trích Xuất Thông Tin HKD
-                </button>
             </div>
 
-            <!-- Step 5: Thông tin Hộ Kinh Doanh (Kết quả Trích xuất) -->
+            <!-- Step 5: Thông tin Hộ Kinh Doanh (Manual Input) -->
             <div class="step-section">
                 <h2 class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a2 2 0 002 2h4a2 2 0 002-2V7m0 10a2 2 0 002 2H6a2 2 0 01-2-2v-4a2 2 0 012-2h12a2 2 0 012 2v4z"></path></svg>
-                    5. Thông tin Hộ Kinh Doanh
+                    5. Thông tin Hộ Kinh Doanh (Nhập Thủ Công)
                 </h2>
                 <div class="space-y-3">
                     <input type="text" id="Ten_ho_kinh_doanh" placeholder="Tên hộ kinh doanh" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -272,7 +250,7 @@
         </main>
         
         <footer class="p-3 text-center text-xs text-gray-500">
-            Powered by Gemini AI for OCR & Firestore
+            Dữ liệu được lưu trữ an toàn qua Firestore
         </footer>
     </div>
     
@@ -282,23 +260,6 @@
     <script type="module">
         // Global functions are attached to window in the module import block
         
-        /**
-         * Chuyển đổi File ảnh thành base64.
-         * @param {File} file - File ảnh từ input.
-         * @returns {Promise<string>} Base64 data (không bao gồm prefix).
-         */
-        const fileToBase64 = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const base64String = reader.result.split(',')[1];
-                    resolve(base64String);
-                };
-                reader.onerror = (error) => reject(error);
-                reader.readAsDataURL(file);
-            });
-        };
-
         /**
          * Hiển thị ảnh preview sau khi chụp.
          */
@@ -318,222 +279,8 @@
             }
         };
 
-        // Hàm giúp định dạng ngày tháng sang YYYY-MM-DD nếu có thể (cho input type=date)
-        const formatDateForInput = (dateString) => {
-            if (!dateString) return '';
-            // Chuỗi ngày tháng có thể là DD/MM/YYYY, DD-MM-YYYY, hoặc YYYY-MM-DD
-            const parts = dateString.match(/(\d{1,4})[/-](\d{1,2})[/-](\d{2,4})/);
-            if (parts) {
-                const p1 = parts[1]; // Ngày hoặc Năm
-                const p2 = parts[2]; // Tháng
-                const p3 = parts[3]; // Năm hoặc Ngày
+        // ... (Firebase functions saveData, initFirebase, showToast, etc. are kept here)
 
-                let year, month, day;
-
-                // Logic đơn giản để đoán định dạng DD/MM/YYYY hoặc MM/DD/YYYY
-                // Giả định định dạng phổ biến ở VN là DD/MM/YYYY
-                if (p1.length <= 2 && p3.length === 4) { // D/M/YYYY (Phổ biến)
-                    day = p1.padStart(2, '0');
-                    month = p2.padStart(2, '0');
-                    year = p3;
-                } else if (p1.length === 4) { // YYYY/MM/DD
-                    year = p1;
-                    month = p2.padStart(2, '0');
-                    day = p3.padStart(2, '0');
-                } else { // Trường hợp khác, sử dụng chuỗi gốc và để người dùng chỉnh sửa
-                    return dateString;
-                }
-
-                return `${year}-${month}-${day}`; 
-            }
-            // Trả về chuỗi gốc nếu không khớp định dạng, để người dùng tự chỉnh sửa.
-            return dateString; 
-        };
-
-        /**
-         * Gọi API Gemini để trích xuất văn bản từ ảnh.
-         * @param {string} inputId - ID của input file.
-         * @param {string} docType - Loại tài liệu ('cccd' hoặc 'hkd').
-         */
-        window.extractText = async (inputId, docType) => {
-            const fileInput = document.getElementById(inputId);
-            
-            // KIỂM TRA QUAN TRỌNG: Đảm bảo có file được chọn
-            if (!fileInput.files || fileInput.files.length === 0) {
-                showToast('Vui lòng chụp ảnh hoặc chọn file trước khi trích xuất.', 'bg-yellow-500');
-                return;
-            }
-
-            const loaderId = docType === 'cccd' ? 'cccdLoader' : 'hkdLoader';
-            const buttonId = docType === 'cccd' ? 'extractCCCDButton' : 'extractHKDButton';
-            const loader = document.getElementById(loaderId);
-            const button = document.getElementById(buttonId);
-            const originalButtonText = button.textContent.trim();
-
-            // Set loading state
-            loader.classList.remove('hidden');
-            button.disabled = true;
-            button.textContent = (docType === 'cccd' ? 'Đang trích xuất CCCD...' : 'Đang trích xuất HKD...');
-            
-            try {
-                const file = fileInput.files[0];
-                const base64Data = await fileToBase64(file);
-                
-                let prompt;
-                let responseSchema;
-
-                if (docType === 'cccd') {
-                    // Cập nhật Prompt: Yêu cầu trả về ngày tháng dưới dạng chuỗi nguyên gốc.
-                    prompt = `Phân tích văn bản trong ảnh là Căn cước công dân. Trích xuất chính xác các thông tin sau: 1. Họ và tên (FULL_NAME), 2. Giới tính (GENDER), 3. Ngày sinh (BIRTH_DATE), 4. Số Căn cước/CCCD (ID_NUMBER), 5. Ngày cấp (ISSUE_DATE), 6. Nơi cấp (ISSUE_PLACE). Trả lời chỉ dưới dạng JSON.`;
-                    responseSchema = {
-                        type: "OBJECT",
-                        properties: {
-                            "FULL_NAME": { "type": "STRING" },
-                            "GENDER": { "type": "STRING" },
-                            "BIRTH_DATE": { "type": "STRING" },
-                            "ID_NUMBER": { "type": "STRING" },
-                            "ISSUE_DATE": { "type": "STRING" },
-                            "ISSUE_PLACE": { "type": "STRING" }
-                        }
-                    };
-                } else { // HKD
-                    // Cập nhật Prompt: Yêu cầu trả về ngày tháng dưới dạng chuỗi nguyên gốc.
-                    prompt = `Phân tích văn bản trong ảnh là Giấy đăng ký Hộ kinh doanh. Trích xuất chính xác các thông tin sau: 1. Tên hộ kinh doanh (HKD_NAME), 2. Số ĐKKD (DKKD_NUMBER), 3. Ngày cấp lần đầu (FIRST_ISSUE_DATE), 4. Ngày điều chỉnh gần nhất (LAST_ADJUST_DATE), 5. Mã số thuế (MST), 6. Lĩnh vực kinh doanh (BUSINESS_FIELD), 7. Địa chỉ HKD (HKD_ADDRESS). Trả lời chỉ dưới dạng JSON.`;
-                    responseSchema = {
-                        type: "OBJECT",
-                        properties: {
-                            "HKD_NAME": { "type": "STRING" },
-                            "DKKD_NUMBER": { "type": "STRING" },
-                            "FIRST_ISSUE_DATE": { "type": "STRING" },
-                            "LAST_ADJUST_DATE": { "type": "STRING" },
-                            "MST": { "type": "STRING" },
-                            "BUSINESS_FIELD": { "type": "STRING" },
-                            "HKD_ADDRESS": { "type": "STRING" }
-                        }
-                    };
-                }
-                
-                // *** KHẮC PHỤC LỖI 403: CHUYỂN MÔ HÌNH VÀ BỎ THAM SỐ KEY ***
-                // Chuyển sang mô hình tiêu chuẩn và bỏ tham số key để kích hoạt cơ chế xác thực Header của Canvas
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
-
-                const payload = {
-                    contents: [{
-                        role: "user",
-                        parts: [
-                            { text: prompt },
-                            {
-                                inlineData: {
-                                    mimeType: file.type, // Sử dụng file.type
-                                    data: base64Data
-                                }
-                            }
-                        ]
-                    }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        responseSchema: responseSchema
-                    }
-                };
-                
-                // Retry mechanism for API call (Exponential Backoff)
-                const maxRetries = 5;
-                let attempt = 0;
-                let apiResponse;
-
-                while (attempt < maxRetries) {
-                    attempt++;
-                    try {
-                        const response = await fetch(apiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        
-                        // Kiểm tra lỗi HTTP trước
-                        if (!response.ok) {
-                             const errorBody = await response.json();
-                             console.error(`HTTP Error ${response.status}:`, errorBody);
-                             // Nếu lỗi 403, báo cáo lỗi xác thực rõ ràng hơn
-                             if (response.status === 403) {
-                                showToast('Lỗi 403: Lỗi xác thực API. Khóa API không hợp lệ hoặc bị từ chối.', 'bg-red-700');
-                             }
-                             // Không ném lỗi ngay lập tức để thực hiện retry
-                             await new Promise(resolve => setTimeout(resolve, 2 ** attempt * 1000));
-                             continue;
-                        }
-                        
-                        apiResponse = await response.json();
-                        
-                        if (apiResponse.candidates && apiResponse.candidates.length > 0) {
-                            break; // Success
-                        } else {
-                            console.warn("API returned no candidates, possibly safety block or empty response:", apiResponse);
-                            if (attempt < maxRetries) {
-                                await new Promise(resolve => setTimeout(resolve, 2 ** attempt * 1000));
-                                continue;
-                            } else {
-                                throw new Error("API failed to return content after multiple retries. Check safety settings in console.");
-                            }
-                        }
-                    } catch (error) {
-                        console.warn(`Attempt ${attempt} failed. Retrying in ${2 ** attempt}s...`);
-                        if (attempt < maxRetries) {
-                            await new Promise(resolve => setTimeout(resolve, 2 ** attempt * 1000));
-                        } else {
-                            throw new Error(`Failed after multiple retries: ${error.message}`);
-                        }
-                    }
-                }
-                
-                // Process the successful response
-                if (apiResponse.candidates && apiResponse.candidates.length > 0) {
-                    const jsonText = apiResponse.candidates[0].content.parts[0].text;
-                    let result;
-                    try {
-                        result = JSON.parse(jsonText);
-                    } catch (e) {
-                        console.error("Lỗi cú pháp JSON từ API:", e);
-                        console.error("Văn bản JSON nhận được:", jsonText);
-                        showToast('Lỗi: Dữ liệu API không phải định dạng JSON. Xem console để debug.', 'bg-red-500');
-                        return;
-                    }
-                    
-                    if (docType === 'cccd') {
-                        document.getElementById('Ho_va_ten').value = result.FULL_NAME || '';
-                        document.getElementById('Gioi_tinh').value = result.GENDER || '';
-                        document.getElementById('Ngay_sinh').value = formatDateForInput(result.BIRTH_DATE) || '';
-                        document.getElementById('So_Can_cuoc_CCCD').value = result.ID_NUMBER || '';
-                        document.getElementById('Ngay_cap').value = formatDateForInput(result.ISSUE_DATE) || '';
-                        document.getElementById('Noi_cap').value = result.ISSUE_PLACE || '';
-                        showToast('Trích xuất CCCD thành công. Vui lòng kiểm tra lại dữ liệu!', 'bg-green-600');
-                    } else {
-                        document.getElementById('Ten_ho_kinh_doanh').value = result.HKD_NAME || '';
-                        document.getElementById('So_DKKD').value = result.DKKD_NUMBER || '';
-                        document.getElementById('Ngay_cap_lan_dau').value = formatDateForInput(result.FIRST_ISSUE_DATE) || '';
-                        document.getElementById('Ngay_dieu_chinh_gan_nhat').value = result.LAST_ADJUST_DATE || '';
-                        document.getElementById('Ma_so_thue').value = result.MST || '';
-                        document.getElementById('Linh_vuc_kinh_doanh').value = result.BUSINESS_FIELD || '';
-                        document.getElementById('Dia_chi_HKD').value = result.HKD_ADDRESS || '';
-                        showToast('Trích xuất HKD thành công. Vui lòng kiểm tra lại dữ liệu!', 'bg-green-600');
-                    }
-                } else {
-                    showToast('Lỗi: Không nhận được kết quả trích xuất.', 'bg-red-500');
-                }
-
-            } catch (error) {
-                console.error("Lỗi xử lý hoặc kết nối API:", error);
-                // Hiển thị lỗi chi tiết hơn nếu có thể
-                showToast(`Lỗi trích xuất: ${error.message || 'Lỗi không xác định'}. Thử lại hoặc nhập thủ công.`, 'bg-red-500');
-            } finally {
-                // Reset loading state
-                loader.classList.add('hidden');
-                button.disabled = false;
-                button.textContent = originalButtonText;
-            }
-        };
-
-        // ... (phần còn lại của code submitForm và helper functions giữ nguyên)
         /**
          * Thu thập dữ liệu từ Form và gửi lên Firestore.
          */
@@ -546,8 +293,8 @@
                 // Cán Bộ (Data CB)
                 "Ma_CB": document.getElementById('Ma_CB').value,
                 "Ten_CB": document.getElementById('Ten_CB').value,
-                "Email_CB": document.getElementById('Email_CB').value, // Thêm để lưu vào Firestore
-                "Ten_Phong": document.getElementById('Ten_Phong').value, // Thêm để lưu vào Firestore
+                "Email_CB": document.getElementById('Email_CB').value, 
+                "Ten_Phong": document.getElementById('Ten_Phong').value, 
                 
                 // Chủ Hộ / HKD (Data HKD)
                 "Ho_va_ten": document.getElementById('Ho_va_ten').value,
