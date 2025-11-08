@@ -413,9 +413,9 @@
                     };
                 }
                 
-                // *** KHẮC PHỤC LỖI 403: GỌI API KHÔNG CÓ THAM SỐ KEY TRONG URL ***
-                // Việc này buộc Canvas phải chèn khóa API qua Header, là phương thức xác thực mạnh mẽ hơn.
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+                // *** KHẮC PHỤC LỖI 403: CHUYỂN MÔ HÌNH VÀ BỎ THAM SỐ KEY ***
+                // Chuyển sang mô hình tiêu chuẩn và bỏ tham số key để kích hoạt cơ chế xác thực Header của Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
 
                 const payload = {
                     contents: [{
